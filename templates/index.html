@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Pipeline Wizard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .wizard-steps {
+            display: flex;
+            background: #f8f9fa;
+            padding: 20px;
+            justify-content: space-between;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 0 10px;
+            background: white;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-right: 10px;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        #alerts {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border-color: #0066cc;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .plot-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #0066cc;
+        }
+
+        .prediction-result {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .prediction-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .prediction-normal {
+            color: #28a745;
+        }
+
+        .prediction-risk {
+            color: #dc3545;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            float: right;
+            width: auto;
+            padding: 8px 16px;
+            margin: 10px 0;
+        }
+
+        .mode-btn, #start-stream-btn, #stop-stream-btn {
+            width: auto;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .mode-btn {
+            background: #6c757d;
+        }
+
+        .mode-btn.active {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 ML Pipeline Wizard</h1>
+            <p>Remaining-Useful-Life Prediction for Turbofan Engines (NASA C-MAPSS FD001)</p>
+            <button class="reset-btn" onclick="resetApplication()">Reset Application</button>
+        </div>
+
+        <div class="wizard-steps">
+            <div class="step active" id="step1">
+                <h3>📊 Data Preparation</h3>
+                <p>Load and preprocess sensor data</p>
+            </div>
+            <div class="step" id="step2">
+                <h3>🧠 Model Training</h3>
+                <p>Train LSTM neural network</p>
+            </div>
+            <div class="step" id="step3">
+                <h3>🧪 Test Model</h3>
+                <p>Evaluate on held-out test units</p>
+            </div>
+            <div class="step" id="step4">
+                <h3>🔮 Prediction</h3>
+                <p>Predict failure probability</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Data Preparation -->
+            <div class="step-content active" id="content1">
+                <h2>Data Preparation</h2>
+                <p>This step will load the turbofan engine sensor data, apply standardization, and select the sensors most relevant to failure.</p>
+
+                <div class="file-info">
+                    <h4>📁 Data Files Configuration</h4>
+                    <p><strong>Dataset:</strong> NASA C-MAPSS FD001 &mdash; 100 turbofan engine units, each run to failure, 21 sensors + 3 operational settings per cycle</p>
+                    <p><strong>Training Units:</strong> engines 1&ndash;70 (data/train_FD001.txt)</p>
+                    <p><strong>Testing Units:</strong> engines 71&ndash;90</p>
+                    <p><strong>Prediction Unit:</strong> engine 91 (held out entirely from training)</p>
+                    <p><strong>Note:</strong> For this demo, the unit split is fixed rather than user-selectable.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Data Processing Steps:</label>
+                    <ul>
+                        <li>✅ Load per-engine time series sensor data</li>
+                        <li>✅ Apply StandardScaler normalization</li>
+                        <li>✅ Select the top 10 sensors most consistently correlated with approaching failure</li>
+                        <li>✅ Create 30-cycle prediction windows for LSTM</li>
+                    </ul>
+                </div>
+
+                <button onclick="prepareData()">Prepare Data</button>
+
+                <div class="loading" id="loading1">
+                    <div class="spinner"></div>
+                    <p>Processing data...</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Model Training -->
+            <div class="step-content" id="content2">
+                <h2>Model Training</h2>
+                <p>Configure and train the LSTM model for failure prediction.</p>
+
+                <div class="form-group">
+                    <label for="epochs">Number of Epochs:</label>
+                    <input type="number" id="epochs" value="5" min="1" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label for="learning_rate">Learning Rate:</label>
+                    <input type="number" id="learning_rate" value="0.001" min="0.0001" max="0.1" step="0.0001">
+                </div>
+
+                <button onclick="trainModel()">Train Model</button>
+
+                <div class="loading" id="loading2">
+                    <div class="spinner"></div>
+                    <p>Training model...</p>
+                </div>
+
+                <div id="training-results"></div>
+            </div>
+
+            <!-- Step 3: Test Model -->
+            <div class="step-content" id="content3">
+                <h2>Test Model</h2>
+                <p>Evaluate the trained model against the held-out test units (engines 71&ndash;90).</p>
+
+                <button onclick="testModel()">Test Model</button>
+                <button class="btn-secondary" onclick="skipTest()">Skip Test &amp; Proceed to Prediction</button>
+
+                <div class="loading" id="loading3">
+                    <div class="spinner"></div>
+                    <p>Testing model...</p>
+                </div>
+
+                <div id="test-results"></div>
+            </div>
+
+            <!-- Step 4: Prediction -->
+            <div class="step-content" id="content4">
+                <h2>Failure Prediction</h2>
+                <p>Use the trained model to predict failure probability from sensor data.</p>
+
+                <div class="form-group">
+                    <label for="predict-unit">Engine Unit:</label>
+                    <select id="predict-unit">
+                        <option value="">-- Select a unit --</option>
+                        {% for unit in selectable_units %}
+                        <option value="{{ unit }}">Engine {{ unit }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Prediction Mode:</label>
+                    <button type="button" id="mode-static-btn" class="mode-btn active" onclick="selectMode('static')">Static Prediction</button>
+                    <button type="button" id="mode-dynamic-btn" class="mode-btn" onclick="selectMode('dynamic')">Dynamic Prediction</button>
+                </div>
+
+                <div id="static-panel">
+                    <p>Runs the trained model once against the full history of the selected unit.</p>
+                    <button onclick="makePrediction()">Make Prediction</button>
+
+                    <div class="loading" id="loading4">
+                        <div class="spinner"></div>
+                        <p>Generating prediction...</p>
+                    </div>
+
+                    <div id="prediction-results"></div>
+                </div>
+
+                <div id="dynamic-panel" style="display: none;">
+                    <p>Streams the selected unit's sensor readings cycle by cycle; failure probability
+                       appears once <span id="dynamic-time-steps-label">30</span> cycles of history exist.</p>
+                    <button id="start-stream-btn" onclick="startRealtimePrediction()">Start</button>
+                    <button id="stop-stream-btn" class="btn-secondary" onclick="stopRealtimePrediction()" disabled>Stop</button>
+
+                    <div id="realtime-status"></div>
+                    <div id="realtime-chart" style="width:100%; height:500px; margin-top:20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="btn-secondary" onclick="previousStep()" id="prevBtn" style="display: none;">Previous</button>
+            <button class="btn-success" onclick="nextStep()" id="nextBtn" style="display: none;">Next</button>
+        </div>
+    </div>
+
+    <div id="alerts"></div>
+
+    <script>const MAX_CHART_POINTS = {{ max_chart_points }};</script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="{{ url_for('static', filename='js/realtime.js') }}"></script>
+
+    <script>
+        let currentStep = 1;
+        let dataReady = false;
+        let modelTrained = false;
+        let modelTested = false;
+
+        function showAlert(message, type = 'info') {
+            const alerts = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alerts.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function showLoading(stepNum) {
+            document.getElementById(`loading${stepNum}`).style.display = 'block';
+        }
+
+        function hideLoading(stepNum) {
+            document.getElementById(`loading${stepNum}`).style.display = 'none';
+        }
+
+        function updateStepStatus(stepNum, status) {
+            const step = document.getElementById(`step${stepNum}`);
+            step.classList.remove('active', 'completed');
+            step.classList.add(status);
+        }
+
+        function showStep(stepNum) {
+            // Hide all content
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Show current content
+            document.getElementById(`content${stepNum}`).classList.add('active');
+
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active');
+                if (index + 1 === stepNum) {
+                    step.classList.add('active');
+                }
+            });
+
+            // Update navigation buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.style.display = stepNum > 1 ? 'block' : 'none';
+
+            if (stepNum === 1) {
+                nextBtn.style.display = dataReady ? 'block' : 'none';
+            } else if (stepNum === 2) {
+                nextBtn.style.display = modelTrained ? 'block' : 'none';
+            } else if (stepNum === 3) {
+                nextBtn.style.display = modelTested ? 'block' : 'none';
+            } else {
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function prepareData() {
+            showLoading(1);
+
+            fetch('/prepare_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    train_files: [],
+                    test_files: []
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                hideLoading(1);
+
+                if (result.success) {
+                    showAlert('Data preparation completed successfully!', 'success');
+                    updateStepStatus(1, 'completed');
+                    dataReady = true;
+
+                    // Show results
+                    const resultsDiv = document.createElement('div');
+                    resultsDiv.className = 'metrics';
+                    resultsDiv.innerHTML = `
+                        <div class="metric-card">
+                            <div class="metric-value">${result.train_shape[0]}</div>
+                            <div class="metric-label">Training Samples</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${result.train_shape[1]}</div>
+                            <div class="metric-label">Time Steps</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${result.features_after_pca}</div>
+                            <div class="metric-label">Selected Sensors</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${result.test_shape[0]}</div>
+                            <div class="metric-label">Test Samples</div>
+                        </div>
+                    `;
+
+                    document.getElementById('content1').appendChild(resultsDiv);
+                    showStep(1);
+                } else {
+                    showAlert('Error preparing data: ' + result.error, 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading(1);
+                showAlert('Error preparing data: ' + error.message, 'error');
+            });
+        }
+
+        function trainModel() {
+            showLoading(2);
+            document.getElementById('training-results').innerHTML = '';
+
+            const epochs = parseInt(document.getElementById('epochs').value);
+            const learningRate = parseFloat(document.getElementById('learning_rate').value);
+
+            fetch('/train_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    epochs: epochs,
+                    learning_rate: learningRate
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                hideLoading(2);
+
+                if (result.success) {
+                    showAlert('Model training completed successfully!', 'success');
+                    updateStepStatus(2, 'completed');
+                    modelTrained = true;
+
+                    // Retraining invalidates any test/prediction results
+                    // shown for the PREVIOUS model -- clear them and revert
+                    // their step indicators so stale results/graphs from an
+                    // old model can't be mistaken for current ones.
+                    modelTested = false;
+                    document.getElementById('test-results').innerHTML = '';
+                    document.getElementById('prediction-results').innerHTML = '';
+                    document.getElementById('step3').classList.remove('completed');
+                    document.getElementById('step4').classList.remove('completed');
+
+                    // Show results
+                    const resultsDiv = document.getElementById('training-results');
+                    resultsDiv.innerHTML = `
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">${result.final_loss.toFixed(4)}</div>
+                                <div class="metric-label">Final Loss</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${(result.final_accuracy * 100).toFixed(1)}%</div>
+                                <div class="metric-label">Final Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="plot-container">
+                            <h3>Training Progress</h3>
+                            <img src="data:image/png;base64,${result.plot}" alt="Training Plot">
+                        </div>
+                    `;
+
+                    showStep(2);
+                } else {
+                    showAlert('Error training model: ' + result.error, 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading(2);
+                showAlert('Error training model: ' + error.message, 'error');
+            });
+        }
+
+        function testModel() {
+            showLoading(3);
+            document.getElementById('test-results').innerHTML = '';
+
+            fetch('/test_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                hideLoading(3);
+
+                if (result.success) {
+                    showAlert('Model testing completed successfully!', 'success');
+                    updateStepStatus(3, 'completed');
+                    modelTested = true;
+
+                    // Show results
+                    const resultsDiv = document.getElementById('test-results');
+                    resultsDiv.innerHTML = `
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">${result.test_loss.toFixed(4)}</div>
+                                <div class="metric-label">Test Loss</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${(result.test_accuracy * 100).toFixed(1)}%</div>
+                                <div class="metric-label">Test Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="plot-container">
+                            <h3>Test Results</h3>
+                            <img src="data:image/png;base64,${result.plot}" alt="Test Plot">
+                        </div>
+                    `;
+
+                    showStep(3);
+                } else {
+                    showAlert('Error testing model: ' + result.error, 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading(3);
+                showAlert('Error testing model: ' + error.message, 'error');
+            });
+        }
+
+        function skipTest() {
+            // Testing is diagnostic, not a prerequisite for prediction --
+            // this bypasses the /test_model call entirely and goes straight
+            // to the Prediction step without marking Test as completed.
+            currentStep = 4;
+            showStep(4);
+        }
+
+        function getSelectedUnit() {
+            const val = document.getElementById('predict-unit').value;
+            return val ? parseInt(val) : null;
+        }
+
+        function selectMode(mode) {
+            const staticBtn = document.getElementById('mode-static-btn');
+            const dynamicBtn = document.getElementById('mode-dynamic-btn');
+            const staticPanel = document.getElementById('static-panel');
+            const dynamicPanel = document.getElementById('dynamic-panel');
+
+            if (mode === 'dynamic') {
+                staticBtn.classList.remove('active');
+                dynamicBtn.classList.add('active');
+                staticPanel.style.display = 'none';
+                dynamicPanel.style.display = 'block';
+            } else {
+                dynamicBtn.classList.remove('active');
+                staticBtn.classList.add('active');
+                dynamicPanel.style.display = 'none';
+                staticPanel.style.display = 'block';
+                stopRealtimePrediction();   // leaving dynamic mode closes any open stream
+            }
+        }
+
+        function makePrediction() {
+            const unit = getSelectedUnit();
+            if (!unit) {
+                showAlert('Please select an engine unit before predicting.', 'error');
+                return;
+            }
+
+            showLoading(4);
+            document.getElementById('prediction-results').innerHTML = '';
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ unit: unit })
+            })
+            .then(response => response.json())
+            .then(result => {
+                hideLoading(4);
+
+                if (result.success) {
+                    showAlert('Prediction completed successfully!', 'success');
+                    updateStepStatus(4, 'completed');
+
+                    // Show results
+                    const resultsDiv = document.getElementById('prediction-results');
+                    const predictionClass = result.prediction > 0.5 ? 'prediction-risk' : 'prediction-normal';
+
+                    resultsDiv.innerHTML = `
+                        <div class="prediction-result">
+                            <h3>Prediction Result</h3>
+                            <div class="prediction-value ${predictionClass}">
+                                ${(result.prediction * 100).toFixed(1)}%
+                            </div>
+                            <p><strong>Status:</strong> ${result.status}</p>
+                            <p><strong>Threshold:</strong> 50% (values above indicate failure risk)</p>
+                        </div>
+                        <div class="plot-container">
+                            <h3>Sensor Data Analysis & Prediction</h3>
+                            <img src="data:image/png;base64,${result.plot}" alt="Prediction Plot">
+                        </div>
+                    `;
+                } else {
+                    showAlert('Error making prediction: ' + result.error, 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading(4);
+                showAlert('Error making prediction: ' + error.message, 'error');
+            });
+        }
+
+        function resetApplication() {
+            if (confirm('Are you sure you want to reset the application? This will clear all data and models.')) {
+                fetch('/reset')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showAlert('Application reset successfully!', 'success');
+
+                        // Reset UI state
+                        currentStep = 1;
+                        dataReady = false;
+                        modelTrained = false;
+                        modelTested = false;
+
+                        // Clear results
+                        document.getElementById('training-results').innerHTML = '';
+                        document.getElementById('test-results').innerHTML = '';
+                        document.getElementById('prediction-results').innerHTML = '';
+                        stopRealtimePrediction();
+                        document.getElementById('realtime-status').innerHTML = '';
+                        selectMode('static');
+
+                        // Reset step indicators
+                        document.querySelectorAll('.step').forEach((step, index) => {
+                            step.classList.remove('active', 'completed');
+                            if (index === 0) {
+                                step.classList.add('active');
+                            }
+                        });
+
+                        // Clear any additional content
+                        const content1 = document.getElementById('content1');
+                        const metrics = content1.querySelector('.metrics');
+                        if (metrics) {
+                            metrics.remove();
+                        }
+
+                        showStep(1);
+                    }
+                })
+                .catch(error => {
+                    showAlert('Error resetting application: ' + error.message, 'error');
+                });
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            showStep(1);
+        });
+    </script>
+</body>
+</html>
