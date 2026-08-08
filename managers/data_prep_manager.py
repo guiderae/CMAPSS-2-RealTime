@@ -30,6 +30,8 @@ class DataPrepManager:
         """Load DataConfig.DATA_FILE and split into one DataFrame per engine
         unit, each with a 'machine_status' column that's 0 except the final
         (failure) row."""
+        # The data file is space delimited since all data are numeric.  r means raw string,
+        # \s means any whitespace char (spaces, tabs, newlines), + means one or more times.
         raw = pd.read_csv(DataConfig.DATA_FILE, sep=r'\s+', header=None, names=DataConfig.COLUMNS)
         episodes = {}
         for unit in sorted(raw['unit'].unique()):
