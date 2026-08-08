@@ -14,23 +14,23 @@ This is Stage 2 of a 3-stage plan: take the proven POC and rewrite it as a prope
 object-oriented web application with the same functional behavior, so it's
 maintainable and extensible going forward. Three explicit requirements drove this:
 
-1. `app.py` becomes a pure controller — route functions contain no business logic,
+1. `app.py` becomes a pure controller - route functions contain no business logic,
    only calls into 5 Manager classes: **DataPrepManager, TrainManager, TestManager,
    PredictManager, GraphManager**.
-2. No module-level global variables — cross-request state lives as class-level
+2. No module-level global variables - cross-request state lives as class-level
    (static) attributes on whichever Manager class produces it.
 3. Every hardcoded value (file paths, column names, unit ranges, model
    hyperparameters, thresholds, port number, etc.) moves into `config.py`.
 
 One functional addition came out of clarifying requirement 1: **testing must be a
 separate, explicitly-triggered step** (`POST /test_model`), not bundled into
-`/train_model` as before — the rationale being that a user should be able to
+`/train_model` as before - the rationale being that a user should be able to
 iterate on training (re-run with different epochs/learning rate, eyeball the
 loss/accuracy curve) without paying for a held-out evaluation pass every time, and
 only test once satisfied with training. This means removing `validation_data` from
 `model.fit()` and adding a genuinely new endpoint + a 4th UI wizard step.
 
-A later clarification added a 6th class: **`LSTMModel`** (not a "Manager") — the
+A later clarification added a 6th class: **`LSTMModel`** (not a "Manager") - the
 model architecture/definition and the one shared trained instance, held as a
 static `model` attribute directly accessible from `TrainManager`, `TestManager`,
 and `PredictManager`, rather than `TrainManager` owning the model itself.
@@ -45,7 +45,7 @@ CMAPSS-2/
 ├── venv/                          # fresh venv, same pinned deps as CMAPSS-1
 ├── requirements.txt                # copied verbatim from CMAPSS-1
 ├── config.py                       # all constants, as small grouped classes
-├── lstm_model.py                   # LSTMModel — the model definition + shared instance
+├── lstm_model.py                   # LSTMModel - the model definition + shared instance
 ├── app.py                          # thin Flask controller only
 ├── managers/
 │   ├── __init__.py
@@ -61,23 +61,23 @@ CMAPSS-2/
 ```
 
 `LSTMModel` lives at the project root, not inside `managers/`, since it isn't a
-workflow-step orchestrator like the 5 Manager classes — it's the model artifact
+workflow-step orchestrator like the 5 Manager classes - it's the model artifact
 itself (architecture + the one shared trained instance), which `TrainManager`,
 `TestManager`, and `PredictManager` all need direct read access to.
 
 Not carried over: `data/test_FD001.txt`, `data/RUL_FD001.txt`, and `validation/`
-(Stage 1's cross-validation script) — none are read by the running app; only
+(Stage 1's cross-validation script) - none are read by the running app; only
 `train_FD001.txt` is used, and the app manufactures its own train/test/predict
 split from the 100 units inside it.
 
 **Note on the data split (NASA's naming is misleading here):** `train_FD001.txt`
 already contains all 100 units as complete run-to-failure trajectories. NASA's
 official `test_FD001.txt`/`RUL_FD001.txt` are a *different* set of engines,
-truncated before failure, for the official benchmark's separate scoring — our app
+truncated before failure, for the official benchmark's separate scoring - our app
 never reads them. Instead, `DataConfig.TRAIN_UNIT_RANGE` / `TEST_UNIT_RANGE` /
 `PREDICT_UNIT` slice all three of our train/test/predict groups out of the same
 100-unit `train_FD001.txt` by unit ID. So the train/test/predict allocation is
-already fully config-driven — only `train_FD001.txt` needs to be present in `data/`
+already fully config-driven - only `train_FD001.txt` needs to be present in `data/`
 for `config.py` to control all three splits.
 
 ## `config.py`
@@ -111,7 +111,7 @@ class ModelConfig:
     DEFAULT_LEARNING_RATE = 0.001
     BATCH_SIZE = 64
     VERBOSE = 1
-    RANDOM_SEED = 42   # new — see "Determinism" below
+    RANDOM_SEED = 42   # new - see "Determinism" below
 
 class PlotConfig:
     TRAIN_FIGSIZE = (12, 4)
@@ -136,14 +136,14 @@ literal string `'accuracy'`, per the letter of "all hardcoded values."
 All five live under `managers/`. Class-level attributes replace the old module
 globals; each manager owns the state it produces. Managers are allowed to call
 other managers (e.g. `TrainManager` reads `DataPrepManager`'s data,
-`PredictManager` calls `GraphManager`) — that's normal service-layer composition,
+`PredictManager` calls `GraphManager`) - that's normal service-layer composition,
 not a violation of "manager owns its logic."
 
 **Key design decision:** each primary manager's top-level method (`prepare()`,
 `fit()`, `evaluate()`, `predict()`) returns a **complete, ready-to-`jsonify` dict**
 (including `plot`, computed by calling `GraphManager` internally). This keeps
 `app.py` from ever touching a numpy array, a matplotlib figure, or response-shape
-decisions — routes become guard → manager call → `jsonify(result)` → except,
+decisions - routes become guard → manager call → `jsonify(result)` → except,
 nothing else.
 
 ### `DataPrepManager`
@@ -179,7 +179,7 @@ class DataPrepManager:
         {'success': True, 'message': 'Data prepared successfully',
          'train_shape': cls.X_train.shape, 'test_shape': cls.X_test.shape,
          'features_after_pca': len(cls.selected_sensors)}
-        ('features_after_pca' key name kept verbatim — index.html's JS reads
+        ('features_after_pca' key name kept verbatim - index.html's JS reads
         it; no PCA is actually used, same as in CMAPSS-1.)"""
 
     @classmethod
@@ -192,11 +192,11 @@ class DataPrepManager:
 
 These four static methods are the exact, empirically-validated logic from
 `CMAPSS-1/app.py` (`load_episodes`, `create_sequences`, `compute_risk_labels`,
-`select_failure_relevant_sensors`) — ported unchanged. `select_failure_relevant_sensors`
+`select_failure_relevant_sensors`) - ported unchanged. `select_failure_relevant_sensors`
 in particular was validated via 5-fold cross-validation (mean AUC 0.995) and must
 not be altered.
 
-### `LSTMModel` (not a Manager — the model artifact itself)
+### `LSTMModel` (not a Manager - the model artifact itself)
 
 ```python
 class LSTMModel:
@@ -262,7 +262,7 @@ class TestManager:
          'test_accuracy': float(test_accuracy)}"""
 ```
 
-Holds no class-level state — it's a pure evaluator over the other two managers'
+Holds no class-level state - it's a pure evaluator over the other two managers'
 state, produces a one-shot result each call.
 
 **Test plot design decision:** a post-hoc `evaluate()` call has no epoch history to
@@ -270,7 +270,7 @@ plot (that only exists during `fit()`, and `validation_data` is gone from `fit()
 now). `GraphManager.render_test_plot` will instead show the **predicted-probability
 distribution on the test set, split by true label** (e.g. two overlaid histograms
 or a strip plot for true-0 vs. true-1 rows) with a vertical line at
-`PlotConfig.PROBABILITY_THRESHOLD` — this is the only artifact `evaluate()`
+`PlotConfig.PROBABILITY_THRESHOLD` - this is the only artifact `evaluate()`
 naturally produces. This is a new visualization, not a port of an existing one;
 flagging it here explicitly since the original requirements didn't specify what
 the test plot should contain.
@@ -296,7 +296,7 @@ class PredictManager:
 ```
 
 ### `GraphManager`
-Pure rendering, no dataset-specific knowledge — only imports `PlotConfig`, takes
+Pure rendering, no dataset-specific knowledge - only imports `PlotConfig`, takes
 plain arrays/scalars as arguments, returns base64 PNG strings. All `@staticmethod`s:
 
 ```python
@@ -326,7 +326,7 @@ class GraphManager:
         builds, just parameterized instead of closing over module globals."""
 ```
 
-## `app.py` — 6 routes, fully thin
+## `app.py` - 6 routes, fully thin
 
 ```python
 from flask import Flask, render_template, request, jsonify, session
@@ -411,34 +411,34 @@ if __name__ == '__main__':
 ```
 
 Notes:
-- `/predict`'s guard stays on `session.get('model_trained')`, NOT a "tested" flag —
+- `/predict`'s guard stays on `session.get('model_trained')`, NOT a "tested" flag -
   testing is diagnostic, not a prerequisite for prediction, and CMAPSS-1's
   `/predict` contract must stay compatible.
 - `session['train_shape']`/`test_shape` now come from the dict `DataPrepManager.prepare()`
-  returns rather than being read off a local variable — same values, same shapes
+  returns rather than being read off a local variable - same values, same shapes
   (plain tuples), no behavior change.
-- Added a try/except to `/reset` for consistency (CMAPSS-1's `reset()` had none) —
+- Added a try/except to `/reset` for consistency (CMAPSS-1's `reset()` had none) -
   a small robustness improvement, not a behavior change under normal operation.
 - Import list only pulls in what routes actually touch (`ModelConfig` for the two
-  request-body defaults, `FlaskConfig` for secret key/port/debug) — everything
+  request-body defaults, `FlaskConfig` for secret key/port/debug) - everything
   else stays inside the managers.
 
 ## Session flags vs. Manager-owned class state
 
-Two lifetimes, cleanly separated (same overall concurrency model as CMAPSS-1 —
+Two lifetimes, cleanly separated (same overall concurrency model as CMAPSS-1 -
 this refactor relocates state, it doesn't redesign multi-tenancy):
 
 - **`session`** (Flask, per-browser cookie): only booleans/shapes for route
-  guarding — `data_prepared`, `train_shape`, `test_shape`, `model_trained`,
+  guarding - `data_prepared`, `train_shape`, `test_shape`, `model_trained`,
   `model_tested`. Never holds arrays or the model.
 - **Manager/model class attributes** (process memory, single active run): the
-  actual fitted artifacts — `DataPrepManager.{scaler,train_feature_means,
+  actual fitted artifacts - `DataPrepManager.{scaler,train_feature_means,
   selected_sensors,X_train,y_train,X_test,y_test}` and `LSTMModel.model`.
-  `TrainManager` itself holds no state — it's pure orchestration of a `fit()`
+  `TrainManager` itself holds no state - it's pure orchestration of a `fit()`
   call, reading `DataPrepManager`'s data and writing to `LSTMModel.model`.
 
 `/reset` clears both layers via `DataPrepManager.reset()` and `LSTMModel.reset()`.
-`TrainManager`/`TestManager`/`PredictManager`/`GraphManager` need no `reset()` —
+`TrainManager`/`TestManager`/`PredictManager`/`GraphManager` need no `reset()` -
 none of them hold persistent state of their own.
 
 ## Determinism (flagged addition beyond pure refactor)
@@ -451,7 +451,7 @@ against CMAPSS-1, I'm adding `np.random.seed(ModelConfig.RANDOM_SEED)` and
 before it calls `LSTMModel.create()` (so the fresh weight initialization is
 seeded). This costs nothing functionally and makes manual verification meaningfully
 checkable, but it is a behavior addition, not something the stated requirements
-asked for — flagging it explicitly rather than adding it silently.
+asked for - flagging it explicitly rather than adding it silently.
 
 ## `templates/index.html` diff (new Test Model step)
 
@@ -501,7 +501,7 @@ Copied from CMAPSS-1 verbatim, then these surgical changes only:
      `showLoading(3)`, `fetch('/test_model', {method:'POST', headers:{'Content-Type':'application/json'}})`,
      on success sets `modelTested = true`, `updateStepStatus(3, 'completed')`,
      populates `#test-results` with a metrics grid (`test_loss`, `test_accuracy`)
-     and the plot image, calls `showStep(3)`; on failure/error shows an alert —
+     and the plot image, calls `showStep(3)`; on failure/error shows an alert -
      same pattern as `trainModel()`.
    - `makePrediction()`: change `showLoading(3)`/`hideLoading(3)` →
      `showLoading(4)`/`hideLoading(4)`, and `updateStepStatus(3, 'completed')` →
@@ -534,25 +534,25 @@ logic) stays untouched.
 Manual smoke test against a live server (matching the rigor used to validate
 CMAPSS-1), on port 8082 with CMAPSS-1's server stopped to avoid a collision:
 
-1. `GET /` — 200, wizard renders with **4** visible steps.
-2. `POST /prepare_data` — `train_shape`/`test_shape`/`features_after_pca` should
+1. `GET /` - 200, wizard renders with **4** visible steps.
+2. `POST /prepare_data` - `train_shape`/`test_shape`/`features_after_pca` should
    be **exactly** reproducible run-to-run (no randomness in data loading/labeling/
-   sensor-selection/scaling) — compare against CMAPSS-1's `(12030, 30, 10)` /
+   sensor-selection/scaling) - compare against CMAPSS-1's `(12030, 30, 10)` /
    `(3650, 30, 10)` / `10` from the last verified run.
-3. `POST /train_model` — confirm `final_loss`/`final_accuracy` present and
+3. `POST /train_model` - confirm `final_loss`/`final_accuracy` present and
    plausible; with the new fixed seed, this becomes exactly reproducible across
    repeated CMAPSS-2 runs (not necessarily identical to CMAPSS-1's unseeded
    historical run).
-4. `POST /test_model` (new) — confirm `test_loss`/`test_accuracy` returned and
+4. `POST /test_model` (new) - confirm `test_loss`/`test_accuracy` returned and
    distinct from anything in the training response, proving it's a genuinely
    separate evaluation pass, not leftover `validation_data` state.
-5. `POST /predict` — confirm shape (`prediction` float 0–1, `status` string,
+5. `POST /predict` - confirm shape (`prediction` float 0–1, `status` string,
    non-empty `plot`); with unit 91 held out identically to CMAPSS-1, this should
    again predict "Failure Risk" at high confidence, matching CMAPSS-1's 0.9996
    result within reason (exact match not guaranteed even with a seed, due to
    TF's own internal nondeterminism on some ops, but should be close and
    consistently >0.5).
-6. `GET /reset` — `{success:true}`; then confirm `/train_model` immediately after
+6. `GET /reset` - `{success:true}`; then confirm `/train_model` immediately after
    returns `{'success': False, 'error': 'Data not prepared'}` (proves
    `DataPrepManager.reset()` worked); re-run `/prepare_data` → `/predict` without
    `/train_model` in between and confirm it correctly errors (proves
@@ -560,7 +560,7 @@ CMAPSS-1), on port 8082 with CMAPSS-1's server stopped to avoid a collision:
 7. Full sequence test: `/prepare_data` → `/train_model` → `/test_model` →
    `/predict` → `/reset`, confirming each JSON response's top-level keys exactly
    match what `templates/index.html`'s JS reads (see field list established
-   during CMAPSS-1's own verification) — `success`, `train_shape[0..1]`,
+   during CMAPSS-1's own verification) - `success`, `train_shape[0..1]`,
    `features_after_pca`, `test_shape[0]` / `final_loss`, `final_accuracy`, `plot`
    / `test_loss`, `test_accuracy`, `plot` / `prediction`, `status`, `plot`.
 8. Exercise the actual UI in a browser through all 4 steps + reset, confirming
