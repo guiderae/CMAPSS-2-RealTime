@@ -342,11 +342,11 @@
 
                 <div class="file-info">
                     <h4>📁 Data Files Configuration</h4>
-                    <p><strong>Dataset:</strong> NASA C-MAPSS FD001 &mdash; 100 turbofan engine units, each run to failure, 21 sensors + 3 operational settings per cycle</p>
-                    <p><strong>Training Units:</strong> engines 1&ndash;70 (data/train_FD001.txt)</p>
-                    <p><strong>Testing Units:</strong> engines 71&ndash;90</p>
-                    <p><strong>Prediction Unit:</strong> engine 91 (held out entirely from training)</p>
-                    <p><strong>Note:</strong> For this demo, the unit split is fixed rather than user-selectable.</p>
+                    <p><strong>Dataset:</strong> NASA C-MAPSS FD001 &mdash; {{ total_units }} turbofan engine units, each run to failure, 21 sensors + 3 operational settings per cycle</p>
+                    <p><strong>Training Units:</strong> {{ train_units|length }} engines ({{ train_units[0] }}&ndash;{{ train_units[-1] }}) &mdash; data/train_FD001.txt</p>
+                    <p><strong>Testing Units:</strong> {{ test_units|length }} engines ({{ test_units[0] }}&ndash;{{ test_units[-1] }})</p>
+                    <p><strong>Prediction Units:</strong> {{ predict_units|length }} engines ({{ predict_units[0] }}&ndash;{{ predict_units[-1] }}), held out entirely from training and testing</p>
+                    <p><strong>Note:</strong> The split is percentage-based (<code>config.py</code>'s <code>TRAIN/TEST/PREDICT_UNIT_ALLOCATION</code>), computed from however many units the data file actually contains.</p>
                 </div>
 
                 <div class="form-group">
@@ -354,8 +354,8 @@
                     <ul>
                         <li>✅ Load per-engine time series sensor data</li>
                         <li>✅ Apply StandardScaler normalization</li>
-                        <li>✅ Select the top 10 sensors most consistently correlated with approaching failure</li>
-                        <li>✅ Create 30-cycle prediction windows for LSTM</li>
+                        <li>✅ Select the top {{ top_n_sensors }} sensors most consistently correlated with approaching failure</li>
+                        <li>✅ Create {{ time_steps }}-cycle prediction windows for LSTM</li>
                     </ul>
                 </div>
 

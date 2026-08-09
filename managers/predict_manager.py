@@ -14,12 +14,14 @@ class PredictManager:
 
     @classmethod
     def predict(cls, unit=None):
-        """Loads the given unit fresh (defaults to DataConfig.PREDICT_UNIT
-        for backward compatibility -- never in train/test units either
-        way). Returns the response dict ready for jsonify, or
-        {'success': False, 'error': ...} if the unit isn't in the dataset
-        or there's insufficient data."""
-        unit = unit if unit is not None else DataConfig.PREDICT_UNIT
+        """Loads the given unit fresh (defaults to the first unit in the
+        predict-allocation group -- see DataPrepManager.get_unit_splits --
+        never a train/test unit either way). Returns the response dict
+        ready for jsonify, or {'success': False, 'error': ...} if the
+        unit isn't in the dataset or there's insufficient data."""
+        if unit is None:
+            _, _, predict_units = DataPrepManager.get_unit_splits(DataPrepManager.get_unit_ids())
+            unit = predict_units[0] if predict_units else None
 
         episodes = DataPrepManager.load_episodes()
         if unit not in episodes:

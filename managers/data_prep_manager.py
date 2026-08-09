@@ -42,6 +42,33 @@ class DataPrepManager:
         return episodes
 
     @staticmethod
+    def get_unit_ids():
+        """Cheaply returns sorted unique unit IDs from DataConfig.DATA_FILE,
+        without building full per-unit DataFrames (unlike load_episodes()) --
+        reads only the 'unit' column."""
+        raw = pd.read_csv(DataConfig.DATA_FILE, sep=r'\s+', header=None,
+                           names=DataConfig.COLUMNS, usecols=['unit'])
+        return sorted(int(u) for u in raw['unit'].unique())
+
+    @staticmethod
+    def get_unit_splits(all_units):
+        """Splits `all_units` into (train_units, test_units, predict_units)
+        based on DataConfig.TRAIN_UNIT_ALLOCATION/TEST_UNIT_ALLOCATION/
+        PREDICT_UNIT_ALLOCATION -- fractions of the total unit count, so
+        the split scales to however many units the data file actually has
+        rather than assuming a fixed count. Slices are taken cumulatively
+        (train first, then test, then predict) so the three groups can
+        never overlap, even if the allocations don't sum to exactly 1.0."""
+        all_units = sorted(all_units)
+        unit_count = len(all_units)
+
+        train_end = round(unit_count * DataConfig.TRAIN_UNIT_ALLOCATION)
+        test_end = train_end + round(unit_count * DataConfig.TEST_UNIT_ALLOCATION)
+        predict_end = test_end + round(unit_count * DataConfig.PREDICT_UNIT_ALLOCATION)
+
+        return all_units[:train_end], all_units[train_end:test_end], all_units[test_end:predict_end]
+
+    @staticmethod
     def create_sequences(data, target, time_steps=DataConfig.TIME_STEPS):
         """Create sliding-window sequences for the LSTM."""
         X, y = [], []
@@ -92,8 +119,13 @@ class DataPrepManager:
         per-unit sequences (never spanning two units). Sets
         cls.scaler/train_feature_means/selected_sensors/X_train/y_train/
         X_test/y_test. Returns the response dict ready for jsonify."""
-        train_units = list(train_units) if train_units is not None else list(DataConfig.TRAIN_UNIT_RANGE)
-        test_units = list(test_units) if test_units is not None else list(DataConfig.TEST_UNIT_RANGE)
+        if train_units is None or test_units is None:
+            default_train, default_test, _ = cls.get_unit_splits(cls.get_unit_ids())
+            train_units = list(train_units) if train_units is not None else default_train
+            test_units = list(test_units) if test_units is not None else default_test
+        else:
+            train_units = list(train_units)
+            test_units = list(test_units)
 
         all_episodes = cls.load_episodes()
         train_dfs = [all_episodes[u] for u in train_units]

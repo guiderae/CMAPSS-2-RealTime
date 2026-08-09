@@ -44,7 +44,10 @@ The app is a 4-step wizard:
 
 1. **Data Preparation** - click **Prepare Data**. Loads all 100 engine units, selects the
    10 sensors most correlated with approaching failure, and builds training/test sequences.
-   Units 1–70 are used for training, 71–90 for testing, and 91 is held out entirely.
+   The split is percentage-based (`config.py`'s `DataConfig.TRAIN_UNIT_ALLOCATION` /
+   `TEST_UNIT_ALLOCATION` / `PREDICT_UNIT_ALLOCATION`, default 70% / 20% / 10%), so with the
+   100 units in `train_FD001.txt` that's units 1–70 for training, 71–90 for testing, and
+   91–100 held out for prediction only.
 
 2. **Model Training** - set epochs/learning rate and click **Train Model**. Trains the LSTM
    from scratch each run; loss/accuracy curves are shown on completion.
@@ -53,8 +56,8 @@ The app is a 4-step wizard:
    **Skip Test & Proceed to Prediction** to go straight to predicting (testing is
    diagnostic, not required).
 
-4. **Prediction** - pick an engine unit from the dropdown (units 71–91, all held out from
-   training), then choose a mode:
+4. **Prediction** - pick an engine unit from the dropdown (units 91–100, the dedicated
+   prediction-only units — never trained or tested on), then choose a mode:
    - **Static Prediction** - runs the model once against the unit's full history and shows
      the failure probability plus a plot.
    - **Dynamic Prediction** - click **Start** to stream the unit's sensor readings cycle by

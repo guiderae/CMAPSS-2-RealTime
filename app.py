@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, Response
 
-from config import ModelConfig, FlaskConfig, RealtimeConfig
+from config import DataConfig, ModelConfig, FlaskConfig, RealtimeConfig
 from lstm_model import LSTMModel
 from managers.data_prep_manager import DataPrepManager
 from managers.train_manager import TrainManager
@@ -15,10 +15,18 @@ app.secret_key = FlaskConfig.SECRET_KEY
 
 @app.route('/')
 def index():
+    all_units = DataPrepManager.get_unit_ids()
+    train_units, test_units, predict_units = DataPrepManager.get_unit_splits(all_units)
     return render_template(
         'index.html',
         selectable_units=DataFileManager.get_selectable_units(),
-        max_chart_points=RealtimeConfig.MAX_CHART_POINTS
+        max_chart_points=RealtimeConfig.MAX_CHART_POINTS,
+        total_units=len(all_units),
+        train_units=train_units,
+        test_units=test_units,
+        predict_units=predict_units,
+        time_steps=DataConfig.TIME_STEPS,
+        top_n_sensors=DataConfig.TOP_N_SENSORS
     )
 
 

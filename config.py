@@ -6,21 +6,25 @@ ever instantiated, they're accessed directly as e.g. DataConfig.TIME_STEPS.
 
 
 class DataConfig:
-    """Dataset location, shape, and the fixed train/test/predict unit split.
+    """Dataset location, shape, and the train/test/predict unit split.
 
     NASA's train_FD001.txt already contains all 100 units as complete
     run-to-failure trajectories -- this app never touches the official
     test_FD001.txt/RUL_FD001.txt (a different, truncated-before-failure set
     of engines used for NASA's own benchmark scoring). Instead,
-    TRAIN_UNIT_RANGE/TEST_UNIT_RANGE/PREDICT_UNIT slice all three of our
-    own train/test/predict groups out of the same 100-unit file by unit ID.
+    TRAIN_UNIT_ALLOCATION/TEST_UNIT_ALLOCATION/PREDICT_UNIT_ALLOCATION
+    split all three of our own train/test/predict groups out of the same
+    file as FRACTIONS of however many units it actually contains (see
+    DataPrepManager.get_unit_splits()), rather than fixed index ranges --
+    so the split scales automatically to a differently-sized data file
+    instead of assuming exactly 100 units.
     """
     DATA_FILE = 'data/train_FD001.txt'
     COLUMNS = ['unit', 'cycle', 'op1', 'op2', 'op3'] + [f'sensor_{i}' for i in range(1, 22)]
 
-    TRAIN_UNIT_RANGE = range(1, 71)    # 70 units
-    TEST_UNIT_RANGE = range(71, 91)    # 20 units
-    PREDICT_UNIT = 91                  # single held-out unit, never trained on
+    TRAIN_UNIT_ALLOCATION = 0.70    # fraction of all units used for training
+    TEST_UNIT_ALLOCATION = 0.20     # fraction of all units used for testing
+    PREDICT_UNIT_ALLOCATION = 0.10  # fraction of all units reserved for prediction only
 
     TIME_STEPS = 30    # well under the shortest unit's 128-cycle lifespan
     RISK_WINDOW = 30   # "failure within the next 30 cycles" -- standard in RUL literature
