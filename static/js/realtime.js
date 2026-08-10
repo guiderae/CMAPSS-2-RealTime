@@ -80,8 +80,18 @@ function initRealtimeChart(sensorNames) {
         title: 'Real-Time Sensor Readings and Failure Prediction',
         xaxis: { title: 'Cycle', type: 'linear' },
         yaxis: { title: 'Scaled Sensors', side: 'left' },
-        yaxis2: { title: 'Failure Prediction', side: 'right', overlaying: 'y', range: [0, 1] },
-        legend: { orientation: 'h' }
+        // No title here -- the only trace on this axis is already labeled
+        // "Failure Prediction" in the legend, so an axis title would just
+        // repeat the same text.
+        yaxis2: { side: 'right', overlaying: 'y', range: [0, 1] },
+        // Horizontal legend, explicitly pushed well below the "Cycle"
+        // x-axis title (not at Plotly's default y, which sits too close
+        // and overlapped it) -- margin.b is widened to match, so the
+        // legend has its own clear strip under the axis title instead of
+        // eating into the plot area on the right like a vertical legend
+        // does.
+        legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.3, yanchor: 'top' },
+        margin: { b: 160 }
     };
 
     Plotly.newPlot(REALTIME_CHART_DIV, traces, layout);
