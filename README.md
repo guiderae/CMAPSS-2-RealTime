@@ -113,11 +113,16 @@ CMAPSS-2/
 ├── templates/index.html                The single-page wizard UI -- markup only, no inline JS/CSS
 ├── static/
 │   ├── css/main.css                    All page styling
-│   └── js/
-│       ├── main.js                     Wizard state/navigation + Data Prep, Standard Training, Test, Static
-│       │                                Prediction, and Reset -- wires up its own buttons/radios on DOMContentLoaded
-│       ├── realtime.js                 Browser-side EventSource + Plotly chart logic for Dynamic Prediction
-│       └── live_training.js            Browser-side EventSource + Plotly chart logic for Live Training
+│   ├── js/
+│   │   ├── main.js                     Wizard state/navigation + Data Prep, Standard Training, Test, Static
+│   │   │                                Prediction, and Reset -- wires up its own buttons/radios on DOMContentLoaded
+│   │   ├── realtime.js                 Browser-side EventSource + Plotly chart logic for Dynamic Prediction
+│   │   └── live_training.js            Browser-side EventSource + Plotly chart logic for Live Training
+│   └── images/                         Screenshots/recordings embedded above
+│       ├── training1.png               Standard Training results (static screenshot)
+│       ├── training4.gif               Live Training loss/accuracy streaming (animated, embedded above)
+│       ├── prediction1.png             Prediction results (static screenshot)
+│       └── prediction2.gif             Dynamic Prediction streaming live (animated, embedded above)
 └── data/train_FD001.txt                NASA C-MAPSS FD001 dataset (100 engine units)
 ```
 
