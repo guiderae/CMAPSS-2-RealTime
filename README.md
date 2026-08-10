@@ -42,6 +42,7 @@ venv/bin/python app.py
 ```
 
 The server starts on **http://localhost:8082**. Open that URL in a browser.
+**NOTE:**  You can change the port number in config.py in the class FlaskConfig.
 
 ## Usage
 
@@ -70,7 +71,7 @@ The app is a 4-step wizard:
    diagnostic, not required).
 
 4. **Prediction** - pick an engine unit from the dropdown (units 91–100, the dedicated
-   prediction-only units — never trained or tested on), then choose a mode:
+   prediction-only units - never trained or tested on), then choose a mode:
    - **Static Prediction** - runs the model once against the unit's full history and shows
      the failure probability plus a plot.
    - **Dynamic Prediction** - click **Start** to stream the unit's sensor readings cycle by
@@ -81,6 +82,13 @@ The app is a 4-step wizard:
 
 **Reset Application** (top right) clears all state - data, trained model, and any
 results/charts on screen - back to step 1.
+
+## Loss and Accuracy in real time as model is training:
+![](static/images/training4.gif)
+
+## Prediction calculated and plotted in real time:
+![](static/images/prediction2.gif)
+
 
 ## Project structure
 
