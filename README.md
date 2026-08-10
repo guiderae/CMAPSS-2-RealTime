@@ -1,15 +1,19 @@
 # CMAPSS-2: Turbofan Failure Prediction
 
 An LSTM-based predictive-maintenance web app for NASA's C-MAPSS FD001 turbofan engine
-dataset. Trains a failure-risk model on 100 simulated engine units, with training itself
-watchable live (**Standard** one-shot training, or **Live Training** streaming per-batch
-loss/accuracy to a chart as it happens), then lets you run predictions against held-out
+dataset. Trains a failure-risk model on 100 simulated engine units, with training either
+**Standard:** one-shot training, or **Live Training:** streaming per-batch
+loss/accuracy to a chart as it happens, then lets you run predictions against held-out
 units two ways: **Static** (one-shot, against a unit's full history) or **Dynamic** (a
 live, cycle-by-cycle simulated stream, updating a chart in real time).
 
-Built as an object-oriented Flask app -  see [`STAGE2_PLAN.md`](STAGE2_PLAN.md) for the
-architecture (5 Manager classes, no global state, config-driven constants) and
-[`PHASE3_SUMMARY.md`](PHASE3_SUMMARY.md) for how the real-time streaming mode works.
+Please visit [guiderae/WorkingDemos-RealTimeGraph1](https://github.com/guiderae/WorkingDemos-RealTimeGraph1) 
+for an explanation and demo of how to live stream data from the server to the browser 
+and plot the graph browser side using the javascript version of plotly, plotly.js.
+
+This web app uses the light weight Flask web frameworks to serve the content.  However, the code
+presented in this has no Flask dependencies other than the controller that maps the incoming
+URL requests to the relevant Python functions.  
 
 ## Prerequisites
 
@@ -81,17 +85,32 @@ results/charts on screen - back to step 1.
 ## Project structure
 
 ```
-app.py                          Flask routes (thin controller - no business logic)
-config.py                       All constants, grouped by concern
-lstm_model.py                   LSTM architecture + the shared trained model instance + training_lock
-managers/                       Business logic: data prep, training, testing, static prediction, plotting
-realtime/                       Streaming: Dynamic-prediction data generator, Live Training's Keras
-                                 callback + background-thread orchestrator, SSE message builders
-utils/                          Helper for populating the unit-selector dropdown
-templates/index.html            The single-page wizard UI
-static/js/realtime.js           Browser-side EventSource + Plotly chart logic for Dynamic Prediction
-static/js/live_training.js      Browser-side EventSource + Plotly chart logic for Live Training
-data/train_FD001.txt            NASA C-MAPSS FD001 dataset (100 engine units)
+CMAPSS-2/
+├── app.py                              Flask routes (thin controller - no business logic)
+├── config.py                           All constants, grouped by concern
+├── lstm_model.py                       LSTM architecture + the shared trained model instance + training_lock
+├── managers/
+│   ├── data_prep_manager.py            DataPrepManager - load/scale data, build train/test/predict unit splits
+│   ├── train_manager.py                TrainManager - synchronous (Standard) training
+│   ├── test_manager.py                 TestManager - evaluate against held-out test units
+│   ├── predict_manager.py              PredictManager - Static Prediction for one unit
+│   └── graph_manager.py                GraphManager - matplotlib plots (training/test/prediction) as base64 PNG
+├── realtime/
+│   ├── data_source_manager.py          DataSourceManager - paced row generator for Dynamic Prediction
+│   ├── process_realtime_data.py        ProcessRealtimeData - buffers, predicts, formats SSE for Dynamic Prediction
+│   ├── live_training_callback.py       LiveTrainingCallback - Keras Callback pushing per-batch stats to a queue
+│   └── process_realtime_training.py    ProcessRealtimeTraining - background-thread fit() + SSE generator for Live Training
+├── utils/
+│   └── data_file_manager.py            DataFileManager - lists selectable prediction units
+├── templates/index.html                The single-page wizard UI -- markup only, no inline JS/CSS
+├── static/
+│   ├── css/main.css                    All page styling
+│   └── js/
+│       ├── main.js                     Wizard state/navigation + Data Prep, Standard Training, Test, Static
+│       │                                Prediction, and Reset -- wires up its own buttons/radios on DOMContentLoaded
+│       ├── realtime.js                 Browser-side EventSource + Plotly chart logic for Dynamic Prediction
+│       └── live_training.js            Browser-side EventSource + Plotly chart logic for Live Training
+└── data/train_FD001.txt                NASA C-MAPSS FD001 dataset (100 engine units)
 ```
 
 ## Notes
