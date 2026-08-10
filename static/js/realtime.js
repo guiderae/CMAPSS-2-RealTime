@@ -119,3 +119,8 @@ function updateRealtimeChart(payload) {
             `<p>Cycle ${payload.cycle} &mdash; buffering, no prediction yet</p>`;
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('start-stream-btn').addEventListener('click', startRealtimePrediction);
+    document.getElementById('stop-stream-btn').addEventListener('click', stopRealtimePrediction);
+});

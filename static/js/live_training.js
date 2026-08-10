@@ -195,3 +195,8 @@ function updateLiveTrainingChart(payload) {
         `loss: <strong>${payload.loss.toFixed(4)}</strong>, ` +
         `accuracy: <strong>${(payload.accuracy * 100).toFixed(1)}%</strong></p>`;
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('start-live-train-btn').addEventListener('click', startLiveTraining);
+    document.getElementById('stop-live-train-btn').addEventListener('click', stopLiveTraining);
+});
