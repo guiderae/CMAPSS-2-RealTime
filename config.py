@@ -70,7 +70,7 @@ class PlotConfig:
 
 class RealtimeConfig:
     """Constants for the Phase 3 streaming/SSE prediction mode."""
-    STREAM_DELAY_SECONDS = 0.1   # pace between simulated sensor readings
+    STREAM_DELAY_SECONDS = 0.2   # pace between simulated sensor readings
     MAX_CHART_POINTS = 50       # client-side Plotly rolling-window trim, ie start scrolling after MAX_CHART_POINT time units
 
 

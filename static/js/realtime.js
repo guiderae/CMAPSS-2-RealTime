@@ -25,6 +25,11 @@ function startRealtimePrediction() {
     document.getElementById('stop-stream-btn').disabled = false;
     document.getElementById('realtime-status').innerHTML = '';
 
+    // The chart lives below the fold at this point in the page -- bring
+    // it into view right away so the user isn't left watching a static
+    // screen while the stream is actually running further down.
+    document.getElementById(REALTIME_CHART_DIV).scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     realtimeSource = new EventSource(`/predict_realtime?unit=${encodeURIComponent(unit)}`);
 
     realtimeSource.addEventListener('initialize', function (event) {

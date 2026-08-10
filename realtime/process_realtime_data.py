@@ -69,11 +69,18 @@ class ProcessRealtimeData:
     def __predict_if_ready(self):
         """Predicts from the buffer as it stands BEFORE the current row is
         appended. Returns None until TIME_STEPS full rows of prior history
-        exist."""
+        exist, or if a Live Training background thread currently holds
+        LSTMModel.training_lock (this row's prediction is simply skipped
+        rather than blocking or erroring the whole stream)."""
         if len(self.buffer) < DataConfig.TIME_STEPS:
             return None
         window = np.array(self.buffer).reshape(1, DataConfig.TIME_STEPS, len(self.feature_columns))
-        return float(LSTMModel.model.predict(window, verbose=0)[0, 0])
+        if not LSTMModel.training_lock.acquire(blocking=False):
+            return None
+        try:
+            return float(LSTMModel.model.predict(window, verbose=0)[0, 0])
+        finally:
+            LSTMModel.training_lock.release()
 
     @staticmethod
     def __sse(event, payload):

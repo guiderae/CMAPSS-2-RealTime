@@ -8,6 +8,7 @@ from managers.test_manager import TestManager
 from managers.predict_manager import PredictManager
 from utils.data_file_manager import DataFileManager
 from realtime.process_realtime_data import ProcessRealtimeData
+from realtime.process_realtime_training import ProcessRealtimeTraining
 
 app = Flask(__name__)
 app.secret_key = FlaskConfig.SECRET_KEY
@@ -54,6 +55,29 @@ def train_model_route():
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/train_model_realtime')
+def train_model_realtime_route():
+    if not session.get('data_prepared'):
+        return jsonify({'success': False, 'error': 'Data not prepared'}), 400
+    epochs = request.args.get('epochs', ModelConfig.DEFAULT_EPOCHS, type=int)
+    learning_rate = request.args.get('learning_rate', ModelConfig.DEFAULT_LEARNING_RATE, type=float)
+
+    response = Response(ProcessRealtimeTraining(epochs, learning_rate).process_points(), mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['X-Accel-Buffering'] = 'no'
+    return response
+
+
+@app.route('/train_model_realtime_complete', methods=['POST'])
+def train_model_realtime_complete_route():
+    """Called by the client after it sees 'jobfinished' -- an ordinary
+    request/response, so session mutation actually works (Flask's session
+    cookie is finalized before an SSE generator's body ever runs, so
+    /train_model_realtime itself can't set this)."""
+    session['model_trained'] = True
+    return jsonify({'success': True})
 
 
 @app.route('/test_model', methods=['POST'])

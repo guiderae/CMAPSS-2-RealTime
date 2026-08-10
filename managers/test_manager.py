@@ -15,18 +15,26 @@ class TestManager:
     def evaluate(cls):
         """Runs the already-trained model against the held-out test units.
         Returns the response dict ready for jsonify."""
-        X_test = DataPrepManager.X_test
-        y_test = DataPrepManager.y_test
+        # Guards against reading LSTMModel.model while a Live Training
+        # background thread is concurrently swapping/mutating it -- same
+        # reasoning as PredictManager.predict().
+        if not LSTMModel.training_lock.acquire(blocking=False):
+            return {'success': False, 'error': 'Model is currently training, please wait'}
+        try:
+            X_test = DataPrepManager.X_test
+            y_test = DataPrepManager.y_test
 
-        test_loss, test_accuracy = LSTMModel.model.evaluate(X_test, y_test, verbose=ModelConfig.VERBOSE)
-        y_pred_prob = LSTMModel.model.predict(X_test).flatten()
+            test_loss, test_accuracy = LSTMModel.model.evaluate(X_test, y_test, verbose=ModelConfig.VERBOSE)
+            y_pred_prob = LSTMModel.model.predict(X_test).flatten()
 
-        plot_url = GraphManager.render_test_plot(y_test, y_pred_prob)
+            plot_url = GraphManager.render_test_plot(y_test, y_pred_prob)
 
-        return {
-            'success': True,
-            'message': 'Model tested successfully',
-            'plot': plot_url,
-            'test_loss': float(test_loss),
-            'test_accuracy': float(test_accuracy)
-        }
+            return {
+                'success': True,
+                'message': 'Model tested successfully',
+                'plot': plot_url,
+                'test_loss': float(test_loss),
+                'test_accuracy': float(test_accuracy)
+            }
+        finally:
+            LSTMModel.training_lock.release()

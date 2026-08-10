@@ -7,6 +7,8 @@ artifact itself. TrainManager builds/fits it, TestManager evaluates it, and
 PredictManager runs predictions with it; all three read LSTMModel.model
 directly rather than TrainManager owning the model on their behalf.
 """
+import threading
+
 try:
     from tensorflow.keras.models import Sequential
     from tensorflow.keras.layers import LSTM, Dense, Dropout
@@ -24,6 +26,14 @@ from config import ModelConfig
 
 class LSTMModel:
     model = None   # class-level Keras model -- the ONE shared trained instance
+
+    # Guards LSTMModel.model against concurrent fit()/predict()/evaluate()
+    # calls -- e.g. a live-training background thread calling create()/fit()
+    # at the same time a /predict or /test_model request reads/mutates the
+    # same shared object. Race-free for this app as run (one process,
+    # threaded=True); would need a different mechanism under multiple
+    # worker processes (e.g. gunicorn -w 2+), which this app doesn't use.
+    training_lock = threading.Lock()
 
     @staticmethod
     def build(input_shape):

@@ -382,14 +382,31 @@
                     <input type="number" id="learning_rate" value="0.001" min="0.0001" max="0.1" step="0.0001">
                 </div>
 
-                <button onclick="trainModel()">Train Model</button>
-
-                <div class="loading" id="loading2">
-                    <div class="spinner"></div>
-                    <p>Training model...</p>
+                <div class="form-group">
+                    <label>Training Mode:</label>
+                    <button type="button" id="mode-sync-btn" class="mode-btn active" onclick="selectTrainingMode('sync')">Standard Training</button>
+                    <button type="button" id="mode-live-btn" class="mode-btn" onclick="selectTrainingMode('live')">Live Training</button>
                 </div>
 
-                <div id="training-results"></div>
+                <div id="sync-train-panel">
+                    <button onclick="trainModel()">Train Model</button>
+
+                    <div class="loading" id="loading2">
+                        <div class="spinner"></div>
+                        <p>Training model...</p>
+                    </div>
+
+                    <div id="training-results"></div>
+                </div>
+
+                <div id="live-train-panel" style="display: none;">
+                    <p>Streams per-batch loss/accuracy from the training run in real time.</p>
+                    <button id="start-live-train-btn" onclick="startLiveTraining()">Start</button>
+                    <button id="stop-live-train-btn" class="btn-secondary" onclick="stopLiveTraining()" disabled>Stop</button>
+
+                    <div id="live-train-status"></div>
+                    <div id="live-train-chart" style="width:100%; height:500px; margin-top:20px;"></div>
+                </div>
             </div>
 
             <!-- Step 3: Test Model -->
@@ -464,6 +481,7 @@
     <script>const MAX_CHART_POINTS = {{ max_chart_points }};</script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="{{ url_for('static', filename='js/realtime.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/live_training.js') }}"></script>
 
     <script>
         let currentStep = 1;
@@ -749,6 +767,26 @@
             }
         }
 
+        function selectTrainingMode(mode) {
+            const syncBtn = document.getElementById('mode-sync-btn');
+            const liveBtn = document.getElementById('mode-live-btn');
+            const syncPanel = document.getElementById('sync-train-panel');
+            const livePanel = document.getElementById('live-train-panel');
+
+            if (mode === 'live') {
+                syncBtn.classList.remove('active');
+                liveBtn.classList.add('active');
+                syncPanel.style.display = 'none';
+                livePanel.style.display = 'block';
+            } else {
+                liveBtn.classList.remove('active');
+                syncBtn.classList.add('active');
+                livePanel.style.display = 'none';
+                syncPanel.style.display = 'block';
+                stopLiveTraining();   // leaving live mode closes any open stream
+            }
+        }
+
         function makePrediction() {
             const unit = getSelectedUnit();
             if (!unit) {
@@ -823,6 +861,9 @@
                         stopRealtimePrediction();
                         document.getElementById('realtime-status').innerHTML = '';
                         selectMode('static');
+                        stopLiveTraining();
+                        document.getElementById('live-train-status').innerHTML = '';
+                        selectTrainingMode('sync');
 
                         // Reset step indicators
                         document.querySelectorAll('.step').forEach((step, index) => {
