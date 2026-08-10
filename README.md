@@ -15,6 +15,9 @@ This web app uses the light weight Flask web frameworks to serve the content.  H
 presented in this has no Flask dependencies other than the controller that maps the incoming
 URL requests to the relevant Python functions.  
 
+All constants used in the app's Python files are defined in config.py.  For example, all training
+hyperparameters are stored in the class ModelConfig, which is defined in config.py.
+
 ## Prerequisites
 
 - Python 3.11
@@ -53,7 +56,7 @@ The app is a 4-step wizard:
    The split is percentage-based (`config.py`'s `DataConfig.TRAIN_UNIT_ALLOCATION` /
    `TEST_UNIT_ALLOCATION` / `PREDICT_UNIT_ALLOCATION`, default 70% / 20% / 10%), so with the
    100 units in `train_FD001.txt` that's units 1–70 for training, 71–90 for testing, and
-   91–100 held out for prediction only.
+   91–100 held out for prediction only.  
 
 2. **Model Training** - set epochs/learning rate, then choose a mode:
    - **Standard Training** - click **Train Model**. Trains the LSTM from scratch
