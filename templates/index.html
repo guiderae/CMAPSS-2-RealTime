@@ -26,20 +26,25 @@
         .header {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
-            padding: 30px;
+            padding: 14px 24px;
             text-align: center;
         }
 
         .header h1 {
+            margin: 0 0 2px;
+            font-size: 1.4em;
+        }
+
+        .header p {
             margin: 0;
-            font-size: 2.5em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 0.8em;
+            opacity: 0.9;
         }
 
         .wizard-steps {
             display: flex;
             background: #f8f9fa;
-            padding: 20px;
+            padding: 10px 16px;
             justify-content: space-between;
             border-bottom: 1px solid #e9ecef;
         }
@@ -47,20 +52,31 @@
         .step {
             flex: 1;
             text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 0 10px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin: 0 6px;
             background: white;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .step h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .step p {
+            margin: 2px 0 0;
+            font-size: 0.7rem;
+            line-height: 1.2;
         }
 
         .step.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
         .step.completed {
@@ -70,12 +86,17 @@
         }
 
         .content {
-            padding: 40px;
+            padding: 20px 40px 40px;
         }
 
         .step-content {
             display: none;
             animation: fadeIn 0.5s ease-in;
+        }
+
+        .step-content h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
         }
 
         .step-content.active {
@@ -98,13 +119,13 @@
             color: #495057;
         }
 
-        input, select, button {
+        input, select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         input:focus, select:focus {
@@ -113,37 +134,80 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .select-narrow {
+            width: auto;
+            min-width: 220px;
+            max-width: 320px;
+        }
+
+        /* Standard, compact HTML-button rendering -- sized to content
+           rather than stretched, no uppercase/gradient/hover-lift. */
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: auto;
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: 500;
+            background: #667eea;
             color: white;
-            border: none;
+            border: 1px solid #667eea;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
+            margin: 8px 4px 8px 0;
+            transition: background 0.15s ease, border-color 0.15s ease;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #5568d3;
+            border-color: #5568d3;
         }
 
         button:disabled {
-            background: #6c757d;
+            background: #ced4da;
+            border-color: #ced4da;
+            color: #6c757d;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
         .btn-secondary {
             background: #6c757d;
-            margin-right: 10px;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            border-color: #5a6268;
         }
 
         .btn-success {
             background: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            border-color: #218838;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
         }
 
         #alerts {
@@ -246,8 +310,9 @@
 
         .navigation {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 16px;
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #e9ecef;
@@ -286,24 +351,13 @@
 
         .reset-btn {
             background: #dc3545;
+            border-color: #dc3545;
             float: right;
-            width: auto;
-            padding: 8px 16px;
-            margin: 10px 0;
         }
 
-        .mode-btn, #start-stream-btn, #stop-stream-btn {
-            width: auto;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .mode-btn {
-            background: #6c757d;
-        }
-
-        .mode-btn.active {
-            background: #28a745;
+        .reset-btn:hover {
+            background: #c82333;
+            border-color: #c82333;
         }
     </style>
 </head>
@@ -384,8 +438,16 @@
 
                 <div class="form-group">
                     <label>Training Mode:</label>
-                    <button type="button" id="mode-sync-btn" class="mode-btn active" onclick="selectTrainingMode('sync')">Standard Training</button>
-                    <button type="button" id="mode-live-btn" class="mode-btn" onclick="selectTrainingMode('live')">Live Training</button>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="training-mode" id="mode-sync-radio" value="sync" checked onchange="selectTrainingMode('sync')">
+                            Standard Training
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="training-mode" id="mode-live-radio" value="live" onchange="selectTrainingMode('live')">
+                            Live Training
+                        </label>
+                    </div>
                 </div>
 
                 <div id="sync-train-panel">
@@ -432,7 +494,7 @@
 
                 <div class="form-group">
                     <label for="predict-unit">Engine Unit:</label>
-                    <select id="predict-unit">
+                    <select id="predict-unit" class="select-narrow">
                         <option value="">-- Select a unit --</option>
                         {% for unit in selectable_units %}
                         <option value="{{ unit }}">Engine {{ unit }}</option>
@@ -442,8 +504,16 @@
 
                 <div class="form-group">
                     <label>Prediction Mode:</label>
-                    <button type="button" id="mode-static-btn" class="mode-btn active" onclick="selectMode('static')">Static Prediction</button>
-                    <button type="button" id="mode-dynamic-btn" class="mode-btn" onclick="selectMode('dynamic')">Dynamic Prediction</button>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="prediction-mode" id="mode-static-radio" value="static" checked onchange="selectMode('static')">
+                            Static Prediction
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="prediction-mode" id="mode-dynamic-radio" value="dynamic" onchange="selectMode('dynamic')">
+                            Dynamic Prediction
+                        </label>
+                    </div>
                 </div>
 
                 <div id="static-panel">
@@ -513,6 +583,19 @@
             const step = document.getElementById(`step${stepNum}`);
             step.classList.remove('active', 'completed');
             step.classList.add(status);
+        }
+
+        // Previous button reads as a plain neutral gray (.btn-secondary)
+        // until a prediction has actually been made, then switches to the
+        // same active blue every other action button uses -- a visual cue
+        // that the wizard's work is done and it's fine to navigate back.
+        function setPrevButtonActive(isActive) {
+            const prevBtn = document.getElementById('prevBtn');
+            if (isActive) {
+                prevBtn.classList.remove('btn-secondary');
+            } else {
+                prevBtn.classList.add('btn-secondary');
+            }
         }
 
         function showStep(stepNum) {
@@ -609,6 +692,7 @@
 
                     document.getElementById('content1').appendChild(resultsDiv);
                     showStep(1);
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {
                     showAlert('Error preparing data: ' + result.error, 'error');
                 }
@@ -654,6 +738,7 @@
                     document.getElementById('prediction-results').innerHTML = '';
                     document.getElementById('step3').classList.remove('completed');
                     document.getElementById('step4').classList.remove('completed');
+                    setPrevButtonActive(false);
 
                     // Show results
                     const resultsDiv = document.getElementById('training-results');
@@ -675,6 +760,7 @@
                     `;
 
                     showStep(2);
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {
                     showAlert('Error training model: ' + result.error, 'error');
                 }
@@ -748,19 +834,15 @@
         }
 
         function selectMode(mode) {
-            const staticBtn = document.getElementById('mode-static-btn');
-            const dynamicBtn = document.getElementById('mode-dynamic-btn');
             const staticPanel = document.getElementById('static-panel');
             const dynamicPanel = document.getElementById('dynamic-panel');
 
             if (mode === 'dynamic') {
-                staticBtn.classList.remove('active');
-                dynamicBtn.classList.add('active');
+                document.getElementById('mode-dynamic-radio').checked = true;
                 staticPanel.style.display = 'none';
                 dynamicPanel.style.display = 'block';
             } else {
-                dynamicBtn.classList.remove('active');
-                staticBtn.classList.add('active');
+                document.getElementById('mode-static-radio').checked = true;
                 dynamicPanel.style.display = 'none';
                 staticPanel.style.display = 'block';
                 stopRealtimePrediction();   // leaving dynamic mode closes any open stream
@@ -768,19 +850,15 @@
         }
 
         function selectTrainingMode(mode) {
-            const syncBtn = document.getElementById('mode-sync-btn');
-            const liveBtn = document.getElementById('mode-live-btn');
             const syncPanel = document.getElementById('sync-train-panel');
             const livePanel = document.getElementById('live-train-panel');
 
             if (mode === 'live') {
-                syncBtn.classList.remove('active');
-                liveBtn.classList.add('active');
+                document.getElementById('mode-live-radio').checked = true;
                 syncPanel.style.display = 'none';
                 livePanel.style.display = 'block';
             } else {
-                liveBtn.classList.remove('active');
-                syncBtn.classList.add('active');
+                document.getElementById('mode-sync-radio').checked = true;
                 livePanel.style.display = 'none';
                 syncPanel.style.display = 'block';
                 stopLiveTraining();   // leaving live mode closes any open stream
@@ -811,6 +889,7 @@
                 if (result.success) {
                     showAlert('Prediction completed successfully!', 'success');
                     updateStepStatus(4, 'completed');
+                    setPrevButtonActive(true);
 
                     // Show results
                     const resultsDiv = document.getElementById('prediction-results');
@@ -864,6 +943,7 @@
                         stopLiveTraining();
                         document.getElementById('live-train-status').innerHTML = '';
                         selectTrainingMode('sync');
+                        setPrevButtonActive(false);
 
                         // Reset step indicators
                         document.querySelectorAll('.step').forEach((step, index) => {

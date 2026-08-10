@@ -84,6 +84,7 @@ function startLiveTraining() {
                 document.getElementById('prediction-results').innerHTML = '';
                 document.getElementById('step3').classList.remove('completed');
                 document.getElementById('step4').classList.remove('completed');
+                setPrevButtonActive(false);
 
                 showStep(2);
             })
